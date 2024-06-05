@@ -1,0 +1,152 @@
+!pip install deepxde
+
+import tensorflow as tf
+import deepxde as dde
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+
+
+# Parameters
+alpha_init = 1 / 10  # 1/평균감염기간
+beta_init = alpha_init * 5  # 초기 감염전파율
+R0_init = beta_init / alpha_init
+beta = dde.Variable(0.5)
+# alpha = dde.Variable(0.1)
+
+def beta_t(t):
+    return beta
+# def alpha_t(t):
+#   return alpha
+
+# Initial conditions
+S0 = 990
+I0 = 10
+R0 = 0
+N0 = S0 + I0 + R0
+initial_conditions = [S0, I0, R0]
+
+# Time span
+dt = 10
+t_max = 30
+t_span = (0, t_max)
+t_eval = np.linspace(0, t_max, t_max)
+
+# Define the ODE system for generating synthetic data
+def ode_system(t, u):
+    S, I, R = u
+    dS_dt = - beta_init * S * I / N0
+    dI_dt = beta_init * S * I / N0 - alpha_init * I
+    dR_dt = alpha_init * I
+    return [dS_dt, dI_dt, dR_dt]
+
+# Solve the ODE system
+solution = solve_ivp(ode_system, t_span, initial_conditions, t_eval=t_eval)
+
+# Extract the solution
+S_data = solution.y[0]
+I_data = solution.y[1]
+R_data = solution.y[2]
+data = np.stack((S_data, I_data, R_data), axis=-1)
+t_data = solution.t[:, None]  # Make sure t_data has the correct shape
+beta_pred = np.zeros_like(t_data)
+alpha_pred = np.zeros_like(t_data)
+
+
+
+
+# Define the geometry
+for ti in range(0,t_max):
+  if ti <= dt:
+    t_under = 0
+    t_upper = dt
+    geom = dde.geometry.TimeDomain(t_under, t_upper)
+  elif ti > dt:
+    t_under = ti-dt
+    t_upper = ti
+    geom = dde.geometry.TimeDomain(t_under, t_upper)
+
+  # Define initial conditions for the PDE model
+  def boundary_init(t, on_initial):
+      return on_initial
+
+  ic1 = dde.icbc.IC(geom, lambda X: S_data[t_under], boundary_init, component=0)
+  ic2 = dde.icbc.IC(geom, lambda X: I_data[t_under], boundary_init, component=1)
+  ic3 = dde.icbc.IC(geom, lambda X: R_data[t_under], boundary_init, component=2)
+
+  # Define the ODE system with time-dependent beta(t)
+  def ode(t, u):
+      S = u[:, 0:1]
+      I = u[:, 1:2]
+      R = u[:, 2:3]
+
+      dS_t = dde.grad.jacobian(u, t, i=0)
+      dI_t = dde.grad.jacobian(u, t, i=1)
+      dR_t = dde.grad.jacobian(u, t, i=2)
+
+      beta_t_value = beta_t(t)
+      # alpha_t_value = alpha_t(t)
+
+      ode1 = dS_t - (- beta_t_value * S * I / N0)
+      ode2 = dI_t - (beta_t_value * S * I / N0 - alpha_init * I)
+      ode3 = dR_t - (alpha_init * I)
+
+      return [ode1, ode2, ode3]
+
+
+  # Create data object, including the true solution as training data
+  observe_u1 = dde.icbc.PointSetBC(t_data[t_under:t_upper], S_data[t_under:t_upper, None], component=0)
+  observe_u2 = dde.icbc.PointSetBC(t_data[t_under:t_upper], I_data[t_under:t_upper, None], component=1)
+  observe_u3 = dde.icbc.PointSetBC(t_data[t_under:t_upper], R_data[t_under:t_upper, None], component=2)
+
+  data = dde.data.TimePDE(
+      geom,
+      ode,
+      [ic1, ic2, ic3, observe_u1, observe_u2, observe_u3],
+      num_domain=5000,
+      num_boundary=500,
+      num_test=1000)
+
+  # Define the neural network for the ODE system
+  layer_size = [1] + [20] * 3 + [3]
+  activation = "relu"
+  initializer = "LeCun normal"
+  net_ode = dde.maps.FNN(layer_size, activation, initializer)
+
+
+  # Combine the two networks
+  model = dde.Model(data, net_ode)
+
+
+  # Trainable variable
+  external_trainable_variables = [beta]
+  variable = dde.callbacks.VariableValue(
+      external_trainable_variables, period=600, filename="variables.dat"
+  )
+
+
+  # Train the model using Adam optimizer
+  model.compile("adam", lr=1e-2, external_trainable_variables=external_trainable_variables)
+  losshistory, train_state = model.train(iterations=10000, callbacks=[variable])
+
+
+  # Evaluate the model on the test data
+  beta_est = model.sess.run(beta)
+  beta_pred[ti] = beta_est
+  # alpha_est = model.sess.run(alpha)
+  # alpha_pred[ti] = alpha_est
+  print(f"Estimated beta: {beta_est}")
+  # print(f"Estimated alpha: {alpha_est}")
+dde.saveplot(losshistory, train_state, issave=False, isplot=True)
+
+
+# Plot beta(t)
+plt.figure(figsize=(6, 4))
+plt.plot(t_data, beta_pred, 'm-', label='beta(t)', linewidth=2)
+plt.xlabel("Time")
+plt.ylabel("Beta(t)")
+plt.title("Estimated Beta(t) over Time")
+plt.legend()
+plt.grid(True)
+plt.show()
