@@ -4,12 +4,12 @@
 프로젝트의 목표는 알려진 감염병 데이터로 미지의 SIR모델의 파라미터를 추정하는 것 입니다.
 
 [참고]
-[1] M. Raissi, P. Perdikaris, and G. Karniadakis, Journal of Computational Physics 378, 686 (2019).
-[2] S. Lee and J. Popovics, RILEM Technical Letters 7, 178(2022).
-[3] V. Grimm, A. Heinlein, A. Klawonn, M. Lanser, andJ. Weber, Electron. Trans. Numer. Anal 56, 1 (2022).
-[4] S. Han, L. Stelz, H. Stoecker, L. Wang, and K. Zhou,Journal of the Franklin Institute , 106671 (2024).
-[5] Y. Ko, V. M. P. Mendoza, Y. Seo, J. Lee, Y. Kim,D. Kwon, and E. Jung, medRxiv , 2021 (2021).
-[6] S. Berkhahn and M. Ehrhardt, Advances in Continuousand Discrete Models 2022, 61 (2022).
-[7] H. Hu, C. M. Kennedy, P. G. Kevrekidis, and H.-K.Zhang, Viruses 14, 2464 (2022).
-[8] J. Long, A. Khaliq, and K. M. Furati, International journal of computer mathematics 98, 1617 (2021).
-[9] ECDPC, European Centre for Disease Prevention and Control .
+- M. Raissi, P. Perdikaris, and G. Karniadakis, Journal of Computational Physics 378, 686 (2019).
+- S. Lee and J. Popovics, RILEM Technical Letters 7, 178(2022).
+- V. Grimm, A. Heinlein, A. Klawonn, M. Lanser, andJ. Weber, Electron. Trans. Numer. Anal 56, 1 (2022).
+- S. Han, L. Stelz, H. Stoecker, L. Wang, and K. Zhou,Journal of the Franklin Institute , 106671 (2024).
+- Y. Ko, V. M. P. Mendoza, Y. Seo, J. Lee, Y. Kim,D. Kwon, and E. Jung, medRxiv , 2021 (2021).
+- S. Berkhahn and M. Ehrhardt, Advances in Continuousand Discrete Models 2022, 61 (2022).
+- H. Hu, C. M. Kennedy, P. G. Kevrekidis, and H.-K.Zhang, Viruses 14, 2464 (2022).
+- J. Long, A. Khaliq, and K. M. Furati, International journal of computer mathematics 98, 1617 (2021).
+- ECDPC, European Centre for Disease Prevention and Control .
