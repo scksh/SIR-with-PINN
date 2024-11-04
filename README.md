@@ -3,6 +3,9 @@
  이 프로젝트는 대표적인 감염병 수리모델인 SIR모델을 수치적 분석 방법으로 미분방정식 기반 데이터를 해결하는 딥러닝 모델인 PINN을 활용하였습니다.
 프로젝트의 목표는 알려진 감염병 데이터로 미지의 SIR모델의 파라미터를 추정하는 것 입니다.
 
+PINN이란
+ Physics Informed Neural Network로 물리정보기반 신경망이라고 부르며 미분방정식 기반으로 동작하는 현상의 데이터를 인공 신경망에서 학습할 때 손실 함수를 데이터가 따르는 미분방정식을 계산하여 모델 성능이 향상된다. 
+
 [참고]
 - M. Raissi, P. Perdikaris, and G. Karniadakis, Journal of Computational Physics 378, 686 (2019).
 - S. Lee and J. Popovics, RILEM Technical Letters 7, 178(2022).
